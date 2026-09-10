@@ -39,6 +39,11 @@ You type moves in algebraic notation. It accepts what people actually type:
 `Nf3`, `nf3`, `e2e4`, `e2-e4`, `exd5`, `ed5`, `0-0`, `oo`, `e8` for a queening
 pawn. Where two pieces could be meant, it says so rather than guessing.
 
+If typing notation is the part in your way rather than the part you are
+training, turn on **Pick moves from a list**: every legal move becomes a
+button, grouped by piece. The buttons still show real notation, so it stays a
+notation exercise — you just do not have to spell the move yourself.
+
 There is a **Peek** button that shows the position for four seconds and counts
 how often you used it, a **Hint**, and **Take back**. Turning on *Read moves
 aloud* has the browser speak each move, which is much closer to a real
@@ -78,7 +83,7 @@ src/
     openings.js      the opening lines used by Recall
     speech.js        speech synthesis, degrading to silence
     storage.js       localStorage stats, degrading to session-only
-  components/        Board, MoveList, MoveInput and small shared UI
+  components/        Board, Pieces, MoveList, MoveInput, MoveButtons, shared UI
   modes/             one file per mode
 ```
 
@@ -105,6 +110,23 @@ of repeating the same line. That needs comparable scores for every root move,
 so those levels search each root move with a full window; the hardest level,
 which only ever plays the best move, keeps the window narrow and spends the
 savings on another ply.
+
+### The board
+
+Two things that are easy to get subtly wrong, and were:
+
+The grid needs `grid-template-rows` as well as `grid-template-columns`. With
+auto rows, the ranks holding pieces grow to fit the glyph and the others do
+not — squares came out 52x73 while the board itself stayed square, which only
+shows up once there are pieces on it.
+
+The pieces are drawn as inline SVG rather than set in Unicode chess glyphs.
+The outlined (white) and filled (black) glyph sets often resolve to different
+fonts with different metrics: measured in Chromium, the white king rendered a
+third larger than the black one and overflowed its square. Which fonts get
+picked varies by platform, so there is no CSS fix. Drawing the pieces makes
+every square identical everywhere, and lets them share a base so the whole set
+stands on one baseline.
 
 ### Accessibility
 

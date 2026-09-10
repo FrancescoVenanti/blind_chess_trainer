@@ -4,6 +4,7 @@ import Board from '../components/Board.jsx';
 import { piecesFromGame } from '../lib/position.js';
 import MoveList from '../components/MoveList.jsx';
 import MoveInput from '../components/MoveInput.jsx';
+import MoveButtons from '../components/MoveButtons.jsx';
 import { Announcer, SegmentedControl, Toggle } from '../components/ui.jsx';
 import { DIFFICULTIES, DIFFICULTY_ORDER } from '../lib/engine.js';
 import { useEngine } from '../lib/useEngine.js';
@@ -40,6 +41,7 @@ function snap(game, color) {
   const history = game.history({ verbose: true });
   const last = history[history.length - 1] ?? null;
   return {
+    legalSan: game.moves(),
     history: history.map((move) => move.san),
     lastMove: last ? { from: last.from, to: last.to, san: last.san } : null,
     pieces: piecesFromGame(game),
@@ -57,6 +59,7 @@ export default function PlayMode({ speechEnabled, onSpeechChange }) {
   const [difficulty, setDifficulty] = useState('casual');
   const [level, setLevel] = useState('board');
   const [showCoordinates, setShowCoordinates] = useState(true);
+  const [moveButtons, setMoveButtons] = useState(false);
   const [snapshot, setSnapshot] = useState(() => snap(new Chess(), 'white'));
   const [thinking, setThinking] = useState(false);
   const [error, setError] = useState('');
@@ -245,6 +248,12 @@ export default function PlayMode({ speechEnabled, onSpeechChange }) {
             disabled={!speechSupported()}
             hint={speechSupported() ? undefined : 'Not available in this browser'}
           />
+          <Toggle
+            label="Pick moves from a list"
+            checked={moveButtons}
+            onChange={setMoveButtons}
+            hint="Buttons instead of typing"
+          />
           {level === 'board' && (
             <Toggle label="Show coordinates" checked={showCoordinates} onChange={setShowCoordinates} />
           )}
@@ -270,7 +279,12 @@ export default function PlayMode({ speechEnabled, onSpeechChange }) {
             <p className="blindfold-panel__label">Last move</p>
             <p className="blindfold-panel__move">{lastMoveText ?? '—'}</p>
             <p className="blindfold-panel__spoken">
-              {lastMoveText ? describeSan(lastMoveText) : 'The board is in your head now.'}
+              {/* For a plain pawn move the spoken form is the notation, so skip it. */}
+              {lastMoveText
+                ? describeSan(lastMoveText) === lastMoveText
+                  ? `${snapshot.turn === 'w' ? 'White' : 'Black'} to move`
+                  : describeSan(lastMoveText)
+                : 'The board is in your head now.'}
             </p>
           </div>
         )}
@@ -287,6 +301,8 @@ export default function PlayMode({ speechEnabled, onSpeechChange }) {
           <button type="button" className="button button--primary button--wide" onClick={() => newGame()}>
             New game
           </button>
+        ) : moveButtons ? (
+          <MoveButtons moves={snapshot.legalSan} onPlay={handleMove} disabled={!yourTurn} />
         ) : (
           <MoveInput onSubmit={handleMove} disabled={!yourTurn} error={error} />
         )}

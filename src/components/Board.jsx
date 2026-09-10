@@ -1,16 +1,11 @@
 import { FILES, RANKS, squareColor } from '../lib/squares.js';
-
-const GLYPHS = {
-  wk: '♔', wq: '♕', wr: '♖', wb: '♗', wn: '♘', wp: '♙',
-  bk: '♚', bq: '♛', br: '♜', bb: '♝', bn: '♞', bp: '♟',
-};
-
-const PIECE_NAMES = { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' };
+import PieceIcon from './Pieces.jsx';
+import { pieceName } from '../lib/position.js';
 
 function describeSquare(square, piece) {
   const shade = squareColor(square);
   if (!piece) return `${square}, empty ${shade} square`;
-  return `${square}, ${piece.color === 'w' ? 'white' : 'black'} ${PIECE_NAMES[piece.type]}`;
+  return `${square}, ${piece.color === 'w' ? 'white' : 'black'} ${pieceName(piece.type)}`;
 }
 
 /**
@@ -57,11 +52,7 @@ export default function Board({
                 {showCoordinates && rank === ranks[ranks.length - 1] && (
                   <span className="square__file" aria-hidden="true">{file}</span>
                 )}
-                {piece && (
-                  <span className={`piece piece--${piece.color}`} aria-hidden="true">
-                    {GLYPHS[piece.color + piece.type]}
-                  </span>
-                )}
+                {piece && <PieceIcon type={piece.type} color={piece.color} />}
               </>
             );
 
@@ -69,6 +60,7 @@ export default function Board({
               <button
                 key={square}
                 type="button"
+                data-square={square}
                 className={classes.join(' ')}
                 onClick={() => onSquareClick(square)}
                 disabled={disabledSquares.includes(square)}
@@ -77,7 +69,7 @@ export default function Board({
                 {content}
               </button>
             ) : (
-              <div key={square} className={classes.join(' ')}>
+              <div key={square} data-square={square} className={classes.join(' ')}>
                 {content}
               </div>
             );

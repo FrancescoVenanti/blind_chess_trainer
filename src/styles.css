@@ -344,13 +344,18 @@ body {
 
 .board {
   display: grid;
+  /* Both axes must be explicit: with auto rows, ranks holding a piece grow to
+     the glyph's line box and the board stops being a grid of squares. */
   grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
   width: 100%;
   max-width: min(100%, 460px);
   aspect-ratio: 1;
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
+  /* Lets pieces and coordinates scale with the board instead of the viewport. */
+  container-type: inline-size;
 }
 
 .square {
@@ -358,6 +363,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Grid items floor at min-content by default, which would let a glyph push
+     its track wider than 1fr. */
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   padding: 0;
   border: 0;
   font: inherit;
@@ -378,7 +388,7 @@ button.square:disabled { cursor: not-allowed; }
 
 .square__file, .square__rank {
   position: absolute;
-  font-size: clamp(7px, 1.7vw, 11px);
+  font-size: clamp(6px, 2.6cqi, 11px);
   font-weight: 700;
   color: color-mix(in srgb, var(--square-ink) 62%, transparent);
   pointer-events: none;
@@ -388,23 +398,16 @@ button.square:disabled { cursor: not-allowed; }
 .square__file { bottom: 1px; right: 3px; }
 .square--dark .square__file, .square--dark .square__rank { color: color-mix(in srgb, white 70%, transparent); }
 
+/* Drawn pieces: a fixed share of the square, identical on every platform. */
 .piece {
-  font-size: clamp(20px, 8.5vw, 42px);
-  line-height: 1;
+  display: block;
+  width: 86%;
+  height: 86%;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.35));
 }
 
-/* The outlined glyphs need a real edge, or white pieces vanish on light squares. */
-.piece--w {
-  color: #fdfaf4;
-  text-shadow:
-    1px 0 0 #2b2114, -1px 0 0 #2b2114, 0 1px 0 #2b2114, 0 -1px 0 #2b2114,
-    0 2px 3px rgb(0 0 0 / 0.35);
-}
-
-.piece--b {
-  color: #1b1209;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-}
+.piece--w { fill: #fbf7ef; stroke: #241a10; }
+.piece--b { fill: #1d1409; stroke: #f0e6d4; }
 
 /* ------------------------------------------------------------------ game */
 
@@ -449,6 +452,40 @@ button.square:disabled { cursor: not-allowed; }
 }
 
 .blindfold-panel__spoken { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+/* ---------------------------------------------------------- move buttons */
+
+.movebuttons { display: flex; flex-direction: column; gap: 12px; }
+
+.movebuttons__count {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.movebuttons__group { display: flex; flex-direction: column; gap: 6px; }
+
+.movebuttons__label {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.movebuttons__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 6px;
+}
+
+.button--move {
+  min-height: var(--tap);
+  padding: 8px 6px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
 
 /* ------------------------------------------------------------- move list */
 
